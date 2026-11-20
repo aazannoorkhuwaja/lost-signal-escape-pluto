@@ -89,6 +89,11 @@ func _draw() -> void:
         text_at(game.message, Vector2(303, 625), 17, Color(0.95, 0.95, 0.82))
 
     if game.mode == "intro":
+        if game.clock < 2:
+            panel(Rect2(304, 235, 672, 104))
+            text_at("DISTRESS CALL   /   PLUTO ORBIT", Vector2(340, 275), 22, Color.LIGHT_SKY_BLUE)
+            text_at("Impact detected. Earth has gone silent.", Vector2(340, 313), 24)
+            return
         modal("LOST ON PLUTO", ["Your ship crashed. Five parts are missing.", "Find your TORCH, follow the mini-map, survive five trials.", "Recover every part and return to the ship.", "TAP ANYWHERE / PRESS ENTER TO START"])
     elif game.mode == "dead":
         modal("SIGNAL LOST", ["Your suit ran out of lives.", "Collected: %d / 5 components" % game.collected, "TAP ANYWHERE / PRESS ENTER TO RETRY"])

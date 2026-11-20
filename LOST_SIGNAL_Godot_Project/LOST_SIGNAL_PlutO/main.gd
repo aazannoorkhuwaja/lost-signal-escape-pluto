@@ -7,6 +7,7 @@ const WORLD_W := 2200.0
 const WORLD_H := 1450.0
 const SCREEN := Vector2(1280.0, 720.0)
 const PLAYER_SPEED := 290.0
+const VENT := Vector2(1820, 1140)
 const PLAYER_RADIUS := 19.0
 
 var ship := Vector2(265, 744)
@@ -40,7 +41,7 @@ var parts: Array[Dictionary] = [
 	{"name": "POWER CELL", "pos": Vector2(695, 335), "hint": "Cross the flickering electric field!", "color": Color(0.97, 0.73, 0.23)},
 	{"name": "ENGINE CORE", "pos": Vector2(1250, 285), "hint": "Dodge the roaming space meteors!", "color": Color(1.0, 0.43, 0.36)},
 	{"name": "NAV CHIP", "pos": Vector2(1895, 448), "hint": "Find a path through the rock maze!", "color": Color(0.51, 0.82, 1.0)},
-	{"name": "FUEL MODULE", "pos": Vector2(1870, 1205), "hint": "Navigate the crater field!", "color": Color(0.58, 1.0, 0.65)},
+	{"name": "FUEL MODULE", "pos": Vector2(1870, 1205), "hint": "Watch the icy vent before crossing!", "color": Color(0.58, 1.0, 0.65)},
 	{"name": "TRANSMITTER", "pos": Vector2(850, 1125), "hint": "Avoid the radio-wave beacon!", "color": Color(0.93, 0.53, 1.0)}
 ]
 var fog
@@ -159,6 +160,8 @@ func _process(delta: float) -> void:
 
 func _update_camera() -> void:
 	camera_origin = player - SCREEN * 0.5
+	if mode == "intro":
+		camera_origin += Vector2(250, -170) * pow(maxf(0, 1 - clock / 2), 2)
 	camera_origin.x = clampf(camera_origin.x, 0.0, WORLD_W - SCREEN.x)
 	camera_origin.y = clampf(camera_origin.y, 0.0, WORLD_H - SCREEN.y)
 
@@ -188,7 +191,9 @@ func _check_collectibles() -> void:
 			pickup_position = current["pos"]
 			pickup_time = 0.6
 			collected += 1
-			checkpoint = player
+			checkpoint = pickup_position
+			if collected == 2:
+				checkpoint += Vector2(-60, 0) # Sheltered side of the meteor lane.
 			hurt_invincible = 1.8
 			play_sound("collect")
 			if collected == parts.size():
@@ -216,6 +221,9 @@ func _check_hazards() -> void:
 		if player.distance_to(hazard_pos) < 39:
 			take_damage("Meteor impact! Keep moving.")
 			return
+	if fmod(clock, 4.0) >= 3.0 and player.distance_to(VENT) < 70:
+		take_damage("Cryovent eruption! Cross when the rim fades.")
+		return
 	# Challenge 5: a radio beacon sends out dangerous expanding rings.
 	var ring_dist := fmod(clock, 4.5) * 85.0
 	if player.distance_to(Vector2(850, 1125)) > 60.0 and ring_dist <= 225.0 and absf(player.distance_to(Vector2(850, 1125)) - ring_dist) < 13.0:
@@ -406,6 +414,13 @@ func _draw() -> void:
 		draw_circle(m + Vector2(-7, -6), 9, Color(0.87, 0.62, 0.44))
 		draw_circle(m + Vector2(10, 8), 6, Color(0.39, 0.23, 0.27))
 
+	var vent_phase := fmod(clock, 4.0)
+	var vent_color := Color(0.52, 0.93, 1.0, 0.30 if vent_phase < 2.0 else 0.95)
+	draw_arc(VENT, 70, 0, TAU, 42, vent_color, 3)
+	if vent_phase >= 3.0:
+		draw_circle(VENT, 70, Color(0.37, 0.82, 1, 0.52))
+	elif vent_phase >= 2.0:
+		draw_arc(VENT, 8 + 62 * (vent_phase - 2.0), 0, TAU, 34, vent_color, 3)
 	# Challenge 5: expanding signal ring, best watched before crossing.
 	var beacon := Vector2(850, 1125)
 	var ring_radius := fmod(clock, 4.5) * 85.0
