@@ -35,7 +35,6 @@ The flight check walks all five missions and the return trip, then checks damage
 | [Active game](LOST_SIGNAL_Godot_Project/LOST_SIGNAL_PlutO/) | Scene, gameplay, HUD, shader, sound effects and Android export preset |
 | [QA](qa/) | Headless gameplay regression |
 | [Competition documents](docs/competition/) | Organizer guidelines and participant starter guide |
-| [Archive](archive/) | Original source snapshot and reference recording |
 
 ## Prepare the submission
 
