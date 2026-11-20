@@ -107,7 +107,14 @@ func _build_world() -> void:
 
 func _process(delta: float) -> void:
 	delta = minf(delta, 0.05)
+	var previous_clock := clock
 	clock += delta
+	if mode == "intro":
+		# The last relay transmission, the unanswered call, and the ridge impact.
+		if (previous_clock < 0.65 and clock >= 0.65) or (previous_clock < 5.6 and clock >= 5.6):
+			play_sound("scan")
+		elif previous_clock < 14.1 and clock >= 14.1:
+			play_sound("hit")
 	pickup_time = maxf(0, pickup_time - delta)
 	if message_time > 0:
 		message_time -= delta
@@ -279,6 +286,7 @@ func activate_scan() -> void:
 	play_sound("scan")
 
 func restart_game() -> void:
+	sfx.stop()
 	mode = "playing"
 	clock = 0.0
 	pickup_time = 0.0

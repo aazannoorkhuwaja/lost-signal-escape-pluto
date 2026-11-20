@@ -6,7 +6,7 @@ Pluto has gone silent. Sent to investigate, you crash on the surface with three 
 
 **Members:** Aazan Noor Khuwaja, Mushaf ALi Mir, Abbas Ahmed
 
-[Watch the gameplay demo](https://github.com/aazannoorkhuwaja/lost-signal-escape-pluto/releases/download/story-edition/LostSignal-demo.mp4) · [Download the Android APK](https://github.com/aazannoorkhuwaja/lost-signal-escape-pluto/releases/download/story-edition/LostSignal.apk)
+[Watch the gameplay demo](https://github.com/aazannoorkhuwaja/lost-signal-escape-pluto/releases/download/story-edition-audio/LostSignal-demo.mp4) · [Download the Android APK](https://github.com/aazannoorkhuwaja/lost-signal-escape-pluto/releases/download/story-edition-audio/LostSignal.apk)
 
 ## How to play
 
