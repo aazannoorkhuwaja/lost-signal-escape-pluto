@@ -5,6 +5,25 @@
 **Display:** Landscape, top-down 2D  
 **Status:** Source project generated; runtime and APK export must be tested locally in Godot.
 
+## Mobile improvement update (20 November 2026)
+
+This repo is the active project at `LOST_SIGNAL_Godot_Project/LOST_SIGNAL_PlutO/`.
+The separate `Lost_Signal/LostSignal/` folder is another project; do not open it by mistake.
+
+**Changes committed:** Fixed the old 960x540 vs 1280x720 screen mismatch, landscape orientation, OpenGL Compatibility Android renderer, HUD overlap, progress meter, target compass, wider touch zones, and touch/restart input handling. Added an **Android** export preset.
+
+**Quick APK instructions for the team:**
+
+1. From `~/Downloads/gamjam`, run `git pull --ff-only origin main`.
+2. Open **THIS folder's** `project.godot` in Godot 4.7.2, not the outer `gamjam` folder.
+3. Godot **Editor > Manage Export Templates**: install templates for the exact editor version.
+4. **Editor > Editor Settings > Export > Android**: set Java SDK Path (JDK 17) and Android SDK Path.
+5. **Project > Export**: choose the existing **Android** preset. Resolve any red warnings, then **Export Project** with the debug option enabled. Save as `LOST_SIGNAL-debug.apk`.
+6. On a USB-debugging-enabled Android phone: `adb install -r LOST_SIGNAL-debug.apk`. Or transfer and install the APK manually, allowing installs from that source.
+7. Test **landscape orientation**, start/restart, left joystick, right SCAN, mini-map, five parts, lives and escape ending.
+
+The APK is **not** included in GitHub; this source change is not yet device-tested. Export requires SDK, JDK, matching Godot export templates and an Android debugging keystore. Do not commit keystores or passwords.
+
 ## Play immediately on Ubuntu
 
 1. Extract the ZIP anywhere you have free disk space.
