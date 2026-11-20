@@ -11,17 +11,21 @@ A landscape Android adventure by bunyan al marsoos.</p>
   <a href="https://github.com/aazannoorkhuwaja/lost-signal-escape-pluto/releases/download/pluto-campaign/LostSignal-demo.mp4">Watch the gameplay demo</a>
 </p>
 
-## 🎯 Game Jam themes — LOST × TINY WORLD
+## 🎯 Game Jam themes — LOST × TINY WORLD × DON'T TOUCH
 
-**Primary theme: LOST. Secondary inspiration: TINY WORLD.** Our game blends both announced prompts into one cohesive adventure:
+**Primary theme: LOST. Supporting themes: TINY WORLD and DON'T TOUCH.**
 
-- **LOST:** Pluto Station's signal goes silent, the crew loses its route, and the crash scatters critical spaceship components. With limited visibility, players must find a torch, navigate by mini-map and scanner, recover the parts, and find the way back to their spacecraft.
-- **TINY WORLD:** The action takes place on a compact, miniature, top-down Pluto surface: one self-contained pocket world with recognizable craters, ice ridges, moving dangers and scattered equipment. A small astronaut explores this isolated world, where every landmark and recovered part matters.
-- **How they connect:** The tiny world's terrain hides what was lost. Exploration, navigation, and restoring a way home—not simply collecting objects—drive the gameplay.
+Our game combines all three themes, but **LOST is the heart of the story, objectives, and player experience**:
 
-**One-line pitch:** *A lost signal strands a tiny explorer on a miniature Pluto. Find the parts, rebuild your ship, and bring the crew home.*
+- **🧭 LOST — Main theme:** Pluto Station's signal disappears, the crew loses its route, and the spaceship crashes. Critical parts are scattered across the surface. With limited visibility, the astronauts must find a torch, follow scanner and mini-map clues, recover missing components, and find their way home.
+- **🪐 TINY WORLD — Setting and exploration:** The adventure unfolds on a compact, top-down interpretation of Pluto: a small, isolated world of ice ridges, craters, rocks, hazards, and hidden components. Every landmark matters when you are lost.
+- **⚡ DON'T TOUCH — Survival mechanic:** Dangerous meteors, electrical hazards, crater zones, and moving obstacles force players to navigate carefully. Contact with hazards can cost lives or end a recovery attempt, making avoidance an essential part of reaching each lost component.
 
-If the judges require **one official theme**, submit **LOST** as the selected theme; explain **TINY WORLD** as an additional visual and design influence rather than claiming two separately selected themes.
+**How the themes work together:** You are **LOST** on a **TINY WORLD**, where you must **DON'T TOUCH** dangerous obstacles while recovering your spacecraft and finding a way home.
+
+**One-line pitch:** *Lost on a tiny Pluto, three astronauts dodge deadly hazards, recover their scattered ship parts, and fight to find a way home.*
+
+**For judges:** **LOST is our primary submission theme.** TINY WORLD strengthens the setting and level design; DON'T TOUCH strengthens the obstacle-avoidance gameplay. They support the LOST experience rather than replacing its central premise.
 
 ## 📡 The last transmission
 
