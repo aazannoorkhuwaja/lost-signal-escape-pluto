@@ -2,6 +2,10 @@
 
 A top-down Android adventure built for the **LOST** theme at Coder’s Cup ’26, FAST NUCES Karachi. Pluto has stopped transmitting. After a crash landing, recover a torch, navigate five hazards and rebuild your spacecraft before your suit runs out of lives.
 
+**Team:** bunyan al marsoos
+
+**Members:** Aazan Noor Khuwaja, Mushaf ALi Mir, Abbas Ahmed
+
 ## Play locally
 
 Open the [active Godot project](LOST_SIGNAL_Godot_Project/LOST_SIGNAL_PlutO/project.godot) in **Godot 4.7.2** and press **F5**. For Android, install the signed debug APK on an ARM phone running Android 7.0 or later. See the [player guide and credits](LOST_SIGNAL_Godot_Project/LOST_SIGNAL_PlutO/README.md) for mission details and the AI declaration.
@@ -38,10 +42,10 @@ The flight check walks all five missions and the return trip, then checks damage
 
 ## Prepare the submission
 
-Fill in the team name and three member names in the [game README](LOST_SIGNAL_Godot_Project/LOST_SIGNAL_PlutO/README.md) and commit the update. Export the APK from that revision. Package the active game and its README with the following command, replacing the team name for submission.
+Export the APK and package the active game from the same commit.
 
 ```sh
-git archive --format=zip --prefix=LostSignal/ --output=TeamName_LostSignal.zip \
+git archive --format=zip --prefix=LostSignal/ --output=../BunyanAlMarsoos_LostSignal.zip \
   HEAD:LOST_SIGNAL_Godot_Project/LOST_SIGNAL_PlutO
 ```
 

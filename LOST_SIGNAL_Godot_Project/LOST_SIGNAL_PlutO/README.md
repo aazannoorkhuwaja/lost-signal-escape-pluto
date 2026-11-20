@@ -2,7 +2,9 @@
 
 A landscape Android exploration game for the Coder’s Cup ’26 LOST theme. Pluto stops transmitting. A rescue pilot crashes while investigating and must rebuild the ship with a flashlight, a scanner and three suit lives.
 
-**Team name and three member names** — pending team confirmation.
+**Team:** bunyan al marsoos
+
+**Members:** Aazan Noor Khuwaja, Mushaf ALi Mir, Abbas Ahmed
 
 ## Play
 
@@ -26,4 +28,4 @@ Terrain, spacecraft, astronaut, HUD and lighting are generated with Godot drawin
 
 ## Competition handoff
 
-Submit the signed APK, the cache-free project source and this README. Fill in the team identity and use the organizers’ requested TeamName_GameTitle filename. The guidelines allocate 90 minutes to development and close submissions two hours after the session starts. The starter guide requires an APK and lists Unity project files, while the mobile guidelines allow other engines. This submission supplies Godot source. Confirm the source-format discrepancy with the volunteer desk.
+Submit the signed APK, the cache-free project source and this README. Use the submission filename `BunyanAlMarsoos_LostSignal.zip` for the source archive. The guidelines allocate 90 minutes to development and close submissions two hours after the session starts. The starter guide requires an APK and lists Unity project files, while the mobile guidelines allow other engines. This submission supplies Godot source. Confirm the source-format discrepancy with the volunteer desk.
