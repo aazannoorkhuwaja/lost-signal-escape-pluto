@@ -36,6 +36,9 @@ func _draw() -> void:
     if game == null:
         return
     draw_set_transform_matrix(safe_transform())
+    if game.mode == "intro":
+        draw_prologue(game.clock)
+        return
     panel(Rect2(18, 14, 680, 96))
     text_at("LOST SIGNAL", Vector2(39, 48), 27, Color(0.46, 0.86, 1.0))
     text_at("ESCAPE PLUTO", Vector2(257, 48), 17, Color(0.77, 0.83, 0.94))
@@ -107,14 +110,7 @@ func _draw() -> void:
         panel(Rect2(288, 595, 702, 48), Color(0.03, 0.12, 0.19, 0.93))
         text_at(game.message, Vector2(303, 625), 17, Color(0.95, 0.95, 0.82))
 
-    if game.mode == "intro":
-        if game.clock < 2:
-            panel(Rect2(304, 235, 672, 104))
-            text_at("DISTRESS CALL   /   PLUTO ORBIT", Vector2(340, 275), 22, Color.LIGHT_SKY_BLUE)
-            text_at("Impact detected. Earth has gone silent.", Vector2(340, 313), 24)
-            return
-        modal("LOST ON PLUTO", ["Your ship crashed. Five parts are missing.", "Find your TORCH, follow the mini-map, survive five trials.", "Recover every part and return to the ship.", "TAP ANYWHERE / PRESS ENTER TO START"])
-    elif game.mode == "dead":
+    if game.mode == "dead":
         modal("SIGNAL LOST", ["Your suit ran out of lives.", "Collected: %d / 5 components" % game.collected, "TAP ANYWHERE / PRESS ENTER TO RETRY"])
     elif game.mode == "win":
         modal("MISSION COMPLETE!", ["Flight time: %d:%02d   /   Suit integrity: %d of 3" % [int(game.time_elapsed) / 60, int(game.time_elapsed) % 60, game.lives], "Navigation confirmed: EARTH -- HOME.", "You escaped Pluto with all five components!", "TAP ANYWHERE / PRESS ENTER TO PLAY AGAIN"])
@@ -129,3 +125,65 @@ func modal(heading: String, lines: Array) -> void:
     text_at(heading, Vector2(312, 257), 38, Color(0.44, 0.91, 1.0))
     for i in range(lines.size()):
         text_at(str(lines[i]), Vector2(314, 326 + 46 * i), 21 if i != lines.size() - 1 else 18, Color(0.94, 0.95, 0.98) if i != lines.size() - 1 else Color(1, 0.82, 0.34))
+
+func draw_prologue(elapsed: float) -> void:
+    const TITLES := ["The last transmission", "One pilot, one repair flight", "No guidance", "Five trails in the ice"]
+    const CAPTIONS := [
+        "Pluto Station sent one last weather report. Then the ice storm took its relay offline.",
+        "Earth sent you to repair the relay. On approach, you called the station. Only static came back.",
+        "Without the landing beacon, you saw the ridge too late. The hull struck ice and split open.",
+        "Five ship components tore free and skidded across the plain. Your torch landed nearby."
+    ]
+    const BEAT := 5.0
+    var chapter := mini(int(elapsed / BEAT), TITLES.size() - 1)
+    var t := clampf((elapsed - chapter * BEAT) / BEAT, 0, 1)
+    var sky := Color("#0b1428")
+    var ice := Color("#85d9e7")
+    draw_rect(Rect2(0, 0, SW, SH), sky)
+    for i in range(80):
+        var star := Vector2((i * 379 + 29) % 1280, (i * i * 17 + 43) % 490)
+        draw_circle(star, 1 + i % 2, Color(0.75, 0.86, 1, 0.35 + 0.2 * sin(elapsed + i)))
+
+    if chapter < 2:
+        var planet := Vector2(911, 429)
+        draw_circle(planet, 172, Color("#426182"))
+        draw_arc(planet, 175, PI, TAU, 64, ice, 3)
+        draw_circle(planet + Vector2(65, 25), 36, Color("#344e70"))
+        var relay := planet - Vector2(55, 161)
+        draw_line(relay, relay + Vector2(0, -30), ice, 4)
+        for i in range(3):
+            var pulse := fmod(elapsed * 0.48 + i / 3.0, 1.0)
+            if chapter == 0 and t < 0.72:
+                draw_arc(relay, 6 + pulse * 92, PI * 1.1, PI * 1.9, 32, Color(0.5, 0.91, 1, 1 - pulse), 3)
+        if chapter == 1:
+            draw_flight_ship(Vector2(172, 125).lerp(Vector2(703, 250), smoothstep(0, 1, t)), 0.18)
+    else:
+        var ridge := PackedVector2Array([Vector2(0, 385), Vector2(264, 325), Vector2(425, 370), Vector2(725, 277), Vector2(910, 355), Vector2(1280, 296), Vector2(1280, 520), Vector2(0, 520)])
+        draw_colored_polygon(ridge, Color("#354866"))
+        draw_polyline(ridge.slice(0, 6), ice, 3)
+        var impact := Vector2(700, 283)
+        var descent := smoothstep(0, 0.82, t) if chapter == 2 else 1.0
+        draw_flight_ship(Vector2(145, 115).lerp(impact, descent), 0.12 + descent * 0.24)
+        if chapter == 2 and t > 0.82:
+            var shock := (t - 0.82) / 0.18
+            draw_arc(impact, 6 + shock * 94, 0, TAU, 48, Color(1, 0.8, 0.55, 1 - shock), 5)
+        if chapter == 3:
+            for i in range(5):
+                var dest := Vector2(160 + i * 236, 410 + (i % 2) * 46)
+                var travel := smoothstep(0, 0.64, t)
+                var pos := impact.lerp(dest, travel) - Vector2(0, sin(travel * PI) * (52 + i * 9))
+                draw_line(impact, pos, Color(0.9, 0.7, 0.45, 0.22), 2)
+                draw_circle(pos, 6, game.parts[i]["color"])
+
+    draw_rect(Rect2(0, 510, SW, 210), Color("#101c30"))
+    text_at(TITLES[chapter], Vector2(70, 573), 34, Color.WHITE)
+    text_at(CAPTIONS[chapter], Vector2(70, 620), 22, Color("#c0d6df"))
+    var action := "Tap or press Enter to begin" if chapter == 3 else "Tap or press Enter to skip"
+    text_at(action, Vector2(70, 680), 17, ice)
+
+func draw_flight_ship(center: Vector2, tilt: float) -> void:
+    var hull := PackedVector2Array()
+    for corner in [Vector2(37, 0), Vector2(-21, -14), Vector2(-12, 0), Vector2(-21, 14)]:
+        hull.append(center + corner.rotated(tilt))
+    draw_colored_polygon(hull, Color("#e1e8ed"))
+    draw_circle(center + Vector2(9, 0).rotated(tilt), 5, Color("#589bb6"))
