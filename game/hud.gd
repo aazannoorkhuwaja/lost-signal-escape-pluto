@@ -3,6 +3,8 @@ extends Control
 # Pure HUD drawing: no imported artwork or fonts needed.
 const SW := 1280.0
 const SH := 720.0
+const REPLAY_RECT := Rect2(306, 456, 270, 66)
+const CONTINUE_RECT := Rect2(596, 456, 385, 66)
 var game
 
 func _ready() -> void:
@@ -41,12 +43,13 @@ func _draw() -> void:
         return
     panel(Rect2(18, 14, 680, 96))
     text_at("LOST SIGNAL", Vector2(39, 48), 27, Color(0.46, 0.86, 1.0))
-    text_at("ESCAPE PLUTO", Vector2(257, 48), 17, Color(0.77, 0.83, 0.94))
+    text_at("PLUTO  /  " + game.LEVELS[game.level].to_upper(), Vector2(257, 48), 17, Color(0.77, 0.83, 0.94))
     text_at(game.objective_text(), Vector2(39, 81), 16, Color(1, 0.86, 0.46))
 
     panel(Rect2(714, 14, 296, 96))
-    text_at("PARTS  %d / 5" % game.collected, Vector2(738, 47), 20, Color(0.74, 1.0, 0.73))
+    text_at("PARTS  %d / %d" % [game.collected, game.parts.size()], Vector2(738, 47), 20, Color(0.74, 1.0, 0.73))
     text_at("LIVES  %d / 3" % game.lives, Vector2(738, 80), 18, Color(1.0, 0.61, 0.66))
+    text_at("%d pts" % game.score(), Vector2(895, 46), 17, Color.LIGHT_SKY_BLUE)
     var seconds: int = int(game.time_elapsed)
     text_at("%02d:%02d" % [int(seconds / 60), seconds % 60], Vector2(898, 80), 17, Color(0.78, 0.85, 1.0))
     draw_rect(Rect2(738, 96, 244, 5), Color(0.15, 0.25, 0.37))
@@ -110,10 +113,22 @@ func _draw() -> void:
         panel(Rect2(288, 595, 702, 48), Color(0.03, 0.12, 0.19, 0.93))
         text_at(game.message, Vector2(303, 625), 17, Color(0.95, 0.95, 0.82))
 
-    if game.mode == "dead":
-        modal("SIGNAL LOST", ["Your suit ran out of lives.", "Collected: %d / 5 components" % game.collected, "TAP ANYWHERE / PRESS ENTER TO RETRY"])
-    elif game.mode == "win":
-        modal("SIGNAL RESTORED", ["Flight time: %d:%02d   /   Suit integrity: %d of 3" % [int(game.time_elapsed) / 60, int(game.time_elapsed) % 60, game.lives], "EARTH CONTROL: We hear you, Pluto.", "Your signal is clear. Bring her home.", "TAP ANYWHERE / PRESS ENTER TO PLAY AGAIN"])
+    if game.mode in ["win", "dead"]:
+        var won: bool = game.mode == "win"
+        var title := "SIGNAL LOST"
+        if won:
+            title = "SIGNAL RESTORED" if game.level == 2 else game.LEVELS[game.level].to_upper() + " FLIGHT COMPLETE"
+        var reply := "Earth Control: We hear you, Pluto. Bring her home." if won else "Suit pressure lost. Your crew can try this flight again."
+        if won and game.level < 2:
+            reply = "Flight logged. Attempt the next recovery under tougher conditions."
+        modal(title, [reply, "%s    /    %d components    /    %d points" % [game.LEVELS[game.level], game.collected, game.score()]])
+        var action := "Retry level"
+        if won:
+            panel(REPLAY_RECT)
+            text_at("Replay level   [R]", REPLAY_RECT.position + Vector2(26,41), 23)
+            action = "Next: " + game.LEVELS[game.level + 1] if game.level < 2 else "Replay campaign"
+        panel(CONTINUE_RECT)
+        text_at(action + "   [Enter]", CONTINUE_RECT.position + Vector2(25,41), 23, Color.AQUAMARINE)
 
 func map_pos(world: Vector2, area: Rect2) -> Vector2:
     return Vector2(area.position.x + world.x / game.WORLD_W * area.size.x, area.position.y + world.y / game.WORLD_H * area.size.y)

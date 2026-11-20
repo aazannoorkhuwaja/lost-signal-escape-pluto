@@ -44,8 +44,17 @@ var parts: Array[Dictionary] = [
 	{"name": "FUEL MODULE", "pos": Vector2(1870, 1205), "hint": "Watch the icy vent before crossing!", "color": Color(0.58, 1.0, 0.65)},
 	{"name": "TRANSMITTER", "pos": Vector2(850, 1125), "hint": "Avoid the radio-wave beacon!", "color": Color(0.93, 0.53, 1.0)}
 ]
+const LEVELS := ["Easy", "Medium", "Hard"]
+const EXTRA_PARTS := [
+	{"name": "COOLANT PUMP", "pos": Vector2(425, 365), "hint": "Skirt the pressure cracks.", "color": Color.SKY_BLUE},
+	{"name": "FLIGHT RECORDER", "pos": Vector2(1980, 850), "hint": "Circle the unstable ice.", "color": Color.SALMON}
+]
+const FRACTURES := [Vector2(535, 355), Vector2(430, 525), Vector2(1010, 275), Vector2(1865, 840), Vector2(1870, 535), Vector2(1120, 1150)]
+var level := 0
+var banked_score := 0
 var fog
 var hud
+var scanner_audio: AudioStreamPlayer
 var sfx: AudioStreamPlayer
 
 func _ready() -> void:
@@ -53,6 +62,9 @@ func _ready() -> void:
 	sfx = AudioStreamPlayer.new()
 	sfx.volume_db = -7.0
 	add_child(sfx)
+	scanner_audio = AudioStreamPlayer.new()
+	scanner_audio.volume_db = -10.0
+	add_child(scanner_audio)
 
 	# A tiny fragment shader creates the flashlight cone without images.
 	var fog_layer := CanvasLayer.new()
@@ -114,7 +126,7 @@ func _process(delta: float) -> void:
 		if (previous_clock < 0.65 and clock >= 0.65) or (previous_clock < 5.6 and clock >= 5.6):
 			play_sound("scan")
 		elif previous_clock < 14.1 and clock >= 14.1:
-			play_sound("hit")
+			play_sound("impact")
 	pickup_time = maxf(0, pickup_time - delta)
 	if message_time > 0:
 		message_time -= delta
@@ -129,6 +141,7 @@ func _process(delta: float) -> void:
 		launch_time += delta
 		if launch_time >= 2.5:
 			mode = "win"
+			play_sound("win")
 
 	if mode == "playing":
 		time_elapsed += delta
@@ -156,10 +169,12 @@ func _process(delta: float) -> void:
 	if fog != null:
 		fog.material.set_shader_parameter("facing", facing)
 		fog.material.set_shader_parameter("has_torch", torch_found)
+		if not torch_found:
+			fog.material.set_shader_parameter("beacon_screen", (torch - camera_origin) / SCREEN)
 		var hero_uv := (player - camera_origin) / SCREEN
 		fog.material.set_shader_parameter("hero_screen", hero_uv)
 		fog.material.set_shader_parameter("torch_radius", 0.13 if not torch_found else (0.63 if scan_show > 0 else 0.42))
-		fog.material.set_shader_parameter("darkness", 0.93 if not torch_found else 0.70)
+		fog.material.set_shader_parameter("darkness", 0.79 if not torch_found else 0.70)
 		fog.material.set_shader_parameter("aspect", SCREEN.x / SCREEN.y)
 	queue_redraw()
 	if hud != null:
@@ -212,11 +227,15 @@ func _check_collectibles() -> void:
 		launch_time = 0.0
 		show_message("HULL SEALED   /   Launch sequence engaged", 2.5)
 		joy = Vector2.ZERO
-		play_sound("win")
+		play_sound("launch")
 
 func _check_hazards() -> void:
-	if hurt_invincible > 0:
+	if hurt_invincible > 0 or mode != "playing":
 		return
+	for i in range(level * 3):
+		if player.distance_to(FRACTURES[i]) < 43:
+			take_damage("Ice collapsed! Stay outside the fractured rim.")
+			return
 	# Challenge 1: time the flickering high-voltage barrier.
 	if fmod(clock, 3.0) < 1.65:
 		if Rect2(615, 388, 175, 20).grow(PLAYER_RADIUS).has_point(player):
@@ -285,8 +304,29 @@ func activate_scan() -> void:
 	show_message("ECHO SCAN: Follow the glowing signal!", 2.2)
 	play_sound("scan")
 
+func score() -> int:
+	var points := collected * 100 * (level + 1)
+	if mode in ["launch", "win"]:
+		points += lives * 100 + maxi(0, 300 - int(time_elapsed))
+	return banked_score + points
+
+func next_or_replay() -> void:
+	if mode == "win":
+		if level < LEVELS.size() - 1:
+			banked_score = score()
+			level += 1
+		else:
+			level = 0
+			banked_score = 0
+	restart_game()
+
 func restart_game() -> void:
+	parts.resize(5)
+	for i in range(level):
+		parts.append(EXTRA_PARTS[i])
+
 	sfx.stop()
+	scanner_audio.stop()
 	mode = "playing"
 	clock = 0.0
 	pickup_time = 0.0
@@ -302,13 +342,15 @@ func restart_game() -> void:
 	scan_show = 0.0
 	hurt_invincible = 0.0
 	joy = Vector2.ZERO
-	show_message("Emergency landing. Find the torch to restore visibility!", 4.0)
+	show_message("%s flight  /  %d components. Find the torch east of the wreck." % [LEVELS[level], parts.size()], 4.0)
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
 			if mode in ["intro", "dead", "win"]:
-				restart_game()
+				next_or_replay()
+		if event.keycode == KEY_R and mode in ["dead", "win"]:
+			restart_game()
 		if event.keycode == KEY_SPACE:
 			activate_scan()
 	elif event is InputEventScreenTouch:
@@ -335,7 +377,10 @@ func _input(event: InputEvent) -> void:
 
 func _touch_start(screen_position: Vector2, touch_id: int) -> void:
 	if mode in ["intro", "dead", "win"]:
-		restart_game()
+		if mode == "win" and hud.REPLAY_RECT.has_point(screen_position):
+			restart_game()
+		elif mode == "intro" or hud.CONTINUE_RECT.has_point(screen_position):
+			next_or_replay()
 		return
 	if mode != "playing":
 		return
@@ -349,8 +394,9 @@ func _touch_start(screen_position: Vector2, touch_id: int) -> void:
 func play_sound(which: String) -> void:
 	var path := "res://audio/%s.wav" % which
 	if ResourceLoader.exists(path):
-		sfx.stream = load(path)
-		sfx.play()
+		var channel := scanner_audio if which == "scan" else sfx
+		channel.stream = load(path)
+		channel.play()
 
 func _draw() -> void:
 	# Camera-relative 2D world, with original geometry drawn in code.
@@ -365,21 +411,35 @@ func _draw() -> void:
 			draw_circle(d["p"], d["r"], Color(0.80, 0.89, 1.0, d["alpha"]))
 	# Surface grid, landmarks and illuminated dust trails.
 	for x in range(0, int(WORLD_W), 180):
-		draw_line(Vector2(x, 0), Vector2(x, WORLD_H), Color(0.32, 0.38, 0.52, 0.11), 1.0)
+		draw_line(Vector2(x, 0), Vector2(x, WORLD_H), Color(0.32, 0.38, 0.52, 0.045), 1.0)
 	for y in range(0, int(WORLD_H), 180):
-		draw_line(Vector2(0, y), Vector2(WORLD_W, y), Color(0.32, 0.38, 0.52, 0.11), 1.0)
+		draw_line(Vector2(0, y), Vector2(WORLD_W, y), Color(0.32, 0.38, 0.52, 0.045), 1.0)
 	for crater in craters:
 		var center: Vector2 = crater["p"]
 		var r: float = crater["r"]
 		draw_circle(center, r + 13, Color(0.34, 0.32, 0.46, 0.80))
 		draw_circle(center, r, Color(0.045, 0.055, 0.11, 1.0))
-		draw_arc(center, r + 6, 0, TAU, 38, Color(0.55, 0.52, 0.66, 0.45), 5)
+		draw_arc(center, r + 6, PI, PI * 1.85, 38, Color(0.55, 0.52, 0.66, 0.45), 5)
+	for i in range(level * 3):
+		var center: Vector2 = FRACTURES[i]
+		draw_circle(center, 43, Color("#24263e"))
+		draw_arc(center, 43, 0, TAU, 40, Color.LIGHT_SALMON, 2)
+		for j in range(5):
+			var ray := Vector2.RIGHT.rotated(j * TAU / 5 + i)
+			draw_polyline(PackedVector2Array([center + ray * 5, center + ray * 19 + ray.orthogonal() * 6, center + ray * 39]), Color("#ce8491"), 2)
 	for wall in walls:
+		draw_rect(Rect2(wall.position + Vector2(10, 12), wall.size), Color("#15182a"))
 		draw_rect(wall.grow(6), Color(0.035, 0.052, 0.10))
 		draw_rect(wall, Color(0.36, 0.35, 0.51))
 		draw_rect(wall.grow(-5), Color(0.26, 0.29, 0.44), false, 3.0)
 
 	# Broken spaceship: exactly where the player must return after collecting all parts.
+	for offset in [-18, 16]:
+		var end := ship + Vector2(0, offset)
+		draw_line(end - Vector2(215, 112), end, Color("#202033"), 12, true)
+	for i in range(6):
+		var shard := ship.lerp(torch, (i + 1.0) / 8) + Vector2(0, sin(i * 2.3) * 17)
+		draw_colored_polygon(PackedVector2Array([shard, shard + Vector2(11, 3), shard + Vector2(4, 8)]), Color("#b78e76"))
 	draw_circle(ship, 92, Color(0.12, 0.46, 0.64, 0.18))
 	draw_arc(ship, 83, 0, TAU, 42, Color(0.36, 0.81, 1.0, 0.75), 3)
 	var craft := ship + Vector2(0, -100 * launch_time * launch_time) if mode in ["launch", "win"] else ship
@@ -387,6 +447,9 @@ func _draw() -> void:
 		draw_circle(craft + Vector2(0, 36), 15 + 5 * sin(clock * 40), Color.CORAL)
 	var hull := PackedVector2Array([craft + Vector2(-58, 28), craft + Vector2(26, -46), craft + Vector2(79, 24), craft + Vector2(9, 57)])
 	draw_colored_polygon(hull, Color(0.40, 0.58, 0.79))
+	draw_colored_polygon(PackedVector2Array([craft + Vector2(-48, 16), craft + Vector2(-62, -18), craft + Vector2(-11, -8)]), Color("#8c7890"))
+	if mode == "playing":
+		draw_circle(craft + Vector2(-26, 17), 10 + 2 * sin(clock * 5), Color(1.0, 0.44, 0.21, 0.63))
 	draw_circle(craft + Vector2(12, 3), 23, Color(0.08, 0.34, 0.52))
 	draw_line(craft + Vector2(-26, -19), craft + Vector2(40, 40), Color(1.0, 0.44, 0.31), 6)
 	_label_world("CRASH SITE", ship + Vector2(-62, 116), 18, Color(0.57, 0.85, 1.0))
@@ -408,7 +471,7 @@ func _draw() -> void:
 		if active:
 			_glow(p, 35.0, tint)
 			draw_arc(p, 48 + sin(clock * 4.0) * 3.0, 0, TAU, 36, Color(tint.r, tint.g, tint.b, 0.76), 3.0)
-		draw_colored_polygon(PackedVector2Array([p + Vector2(0, -24), p + Vector2(24, 0), p + Vector2(0, 24), p + Vector2(-24, 0)]), tint)
+		draw_component(i, p, tint)
 		if active:
 			_label_world(item["name"], p + Vector2(-70, -61), 18, tint)
 
@@ -459,6 +522,35 @@ func _draw() -> void:
 		draw_circle(player + facing * 8.0 + Vector2(-3, -4), 3, Color(0.78, 0.99, 1.0))
 		draw_arc(player, 24, 0, TAU, 24, Color(0.44, 0.74, 1.0, 0.55), 2)
 	draw_set_transform(Vector2.ZERO)
+
+func draw_component(index: int, p: Vector2, tint: Color) -> void:
+	var ink := Color("#162238")
+	match index:
+		0: # Battery and terminals
+			draw_rect(Rect2(p - Vector2(15, 19), Vector2(30, 38)), tint)
+			draw_rect(Rect2(p + Vector2(-7, -24), Vector2(14, 5)), tint)
+			draw_line(p + Vector2(-8, 0), p + Vector2(8, 0), ink, 4)
+		1, 5: # Turbine or pump impeller
+			draw_circle(p, 21, ink)
+			draw_arc(p, 22, 0, TAU, 32, tint, 3)
+			for blade in range(5):
+				var ray := Vector2.RIGHT.rotated(blade * TAU / 5)
+				draw_line(p + ray * 4, p + ray * 16 + ray.orthogonal() * 5, tint, 5)
+		2, 6: # Chip and recorder
+			draw_rect(Rect2(p - Vector2(14, 14), Vector2(28, 28)), tint)
+			for pin in [-9, 0, 9]:
+				draw_line(p + Vector2(pin,-21), p + Vector2(pin,-14), tint, 3)
+				draw_line(p + Vector2(pin,14), p + Vector2(pin,21), tint, 3)
+			draw_rect(Rect2(p - Vector2(7,7), Vector2(14,14)), ink)
+		3: # Pressure cylinder
+			draw_line(p - Vector2(0,12), p + Vector2(0,12), tint, 30)
+			for y in [-12,12]:
+				draw_circle(p + Vector2(0,y), 15, tint)
+			draw_line(p - Vector2(14,0), p + Vector2(14,0), ink, 4)
+		4: # Dish on a pedestal
+			draw_arc(p - Vector2(0,8), 21, 0, PI, 24, tint, 6)
+			draw_line(p, p + Vector2(0,22), tint, 4)
+			draw_line(p + Vector2(-12,22), p + Vector2(12,22), tint, 4)
 
 func _glow(center: Vector2, radius: float, tint: Color) -> void:
 	draw_circle(center, radius * 1.8, Color(tint.r, tint.g, tint.b, 0.09))
