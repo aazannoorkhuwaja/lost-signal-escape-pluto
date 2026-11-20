@@ -6,6 +6,8 @@ Pluto has gone silent. Sent to investigate, you crash on the surface with three 
 
 **Members:** Aazan Noor Khuwaja, Mushaf ALi Mir, Abbas Ahmed
 
+[Watch the gameplay demo](https://github.com/aazannoorkhuwaja/lost-signal-escape-pluto/releases/download/story-edition/LostSignal-demo.mp4) · [Download the Android APK](https://github.com/aazannoorkhuwaja/lost-signal-escape-pluto/releases/download/story-edition/LostSignal.apk)
+
 ## How to play
 
 On Android, hold the phone in landscape. Tap to start and use the left thumbstick to reach the torch east of the ship. Once the map lights up, follow the gold marker to the next part. Tap **SCAN** with your right thumb for a bearing through the dark. The scanner recharges in five seconds. Each recovered part saves a checkpoint. After the fifth, return to the blue ship marker to escape.
