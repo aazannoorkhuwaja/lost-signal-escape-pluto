@@ -29,7 +29,11 @@ In this fictional mission, the night shift at SUPARCO Mission Control in Pakista
 
 Abbas has a torch somewhere east of the wreck. That’s all the crew has to navigate by until he finds it.
 
-![Gameplay from the first recovery flight on Pluto](docs/images/first-flight.jpg)
+### 🎮 Watch the gameplay
+
+![Lost Signal: Escape Pluto — looping gameplay preview with scanner, obstacles, part recovery and level progression](docs/images/gameplay-demo.gif)
+
+*Autoplaying, looping preview from the published Campaign Edition. [Watch the full gameplay video](https://github.com/aazannoorkhuwaja/lost-signal-escape-pluto/releases/download/pluto-campaign/LostSignal-demo.mp4).*
 
 ## 🧑‍🚀 Meet the crew
 
