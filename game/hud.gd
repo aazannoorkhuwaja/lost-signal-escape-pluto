@@ -113,7 +113,7 @@ func _draw() -> void:
     if game.mode == "dead":
         modal("SIGNAL LOST", ["Your suit ran out of lives.", "Collected: %d / 5 components" % game.collected, "TAP ANYWHERE / PRESS ENTER TO RETRY"])
     elif game.mode == "win":
-        modal("MISSION COMPLETE!", ["Flight time: %d:%02d   /   Suit integrity: %d of 3" % [int(game.time_elapsed) / 60, int(game.time_elapsed) % 60, game.lives], "Navigation confirmed: EARTH -- HOME.", "You escaped Pluto with all five components!", "TAP ANYWHERE / PRESS ENTER TO PLAY AGAIN"])
+        modal("SIGNAL RESTORED", ["Flight time: %d:%02d   /   Suit integrity: %d of 3" % [int(game.time_elapsed) / 60, int(game.time_elapsed) % 60, game.lives], "EARTH CONTROL: We hear you, Pluto.", "Your signal is clear. Bring her home.", "TAP ANYWHERE / PRESS ENTER TO PLAY AGAIN"])
 
 func map_pos(world: Vector2, area: Rect2) -> Vector2:
     return Vector2(area.position.x + world.x / game.WORLD_W * area.size.x, area.position.y + world.y / game.WORLD_H * area.size.y)
