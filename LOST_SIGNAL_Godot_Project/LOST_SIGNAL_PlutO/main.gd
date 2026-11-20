@@ -219,6 +219,9 @@ func take_damage(reason: String) -> void:
 	play_sound("hit")
 	if lives <= 0:
 		mode = "dead"
+		joy = Vector2.ZERO
+		stick_down = false
+		stick_touch_id = -99
 		show_message("Suit integrity lost!", 2.0)
 	else:
 		player = checkpoint
@@ -264,6 +267,8 @@ func restart_game() -> void:
 	scan_show = 0.0
 	hurt_invincible = 0.0
 	joy = Vector2.ZERO
+	stick_down = false
+	stick_touch_id = -99
 	show_message("Emergency landing. Find the torch to restore visibility!", 4.0)
 
 func _input(event: InputEvent) -> void:
@@ -284,6 +289,10 @@ func _input(event: InputEvent) -> void:
 		if event.index == stick_touch_id:
 			joy = (event.position - Vector2(118, 598)).limit_length(72.0) / 72.0
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		# When Godot emulates a touch from a mouse, do not replace a live
+		# touchscreen finger with synthetic mouse joystick input.
+		if stick_touch_id >= 0:
+			return
 		if event.pressed:
 			_touch_start(event.position, -1)
 		elif stick_touch_id == -1:
@@ -297,11 +306,11 @@ func _touch_start(screen_position: Vector2, touch_id: int) -> void:
 	if mode != "playing":
 		restart_game()
 		return
-	if screen_position.distance_to(Vector2(118, 598)) < 120:
+	if screen_position.distance_to(Vector2(118, 598)) < 145:
 		stick_down = true
 		stick_touch_id = touch_id
 		joy = (screen_position - Vector2(118, 598)).limit_length(72.0) / 72.0
-	elif screen_position.distance_to(Vector2(1150, 608)) < 110:
+	elif screen_position.distance_to(Vector2(1150, 608)) < 125:
 		activate_scan()
 
 func play_sound(which: String) -> void:
@@ -316,8 +325,11 @@ func _draw() -> void:
 	draw_rect(Rect2(0, 0, WORLD_W, WORLD_H), Color(0.105, 0.12, 0.22))
 	draw_circle(Vector2(440, 600), 580, Color(0.15, 0.16, 0.28, 0.30))
 	draw_circle(Vector2(1700, 1000), 760, Color(0.18, 0.17, 0.28, 0.28))
+	# Cull off-screen dust: saves draw calls on low-end Android phones.
+	var visible_world := Rect2(camera_origin - Vector2(20, 20), SCREEN + Vector2(40, 40))
 	for d in dust:
-		draw_circle(d["p"], d["r"], Color(0.80, 0.89, 1.0, d["alpha"]))
+		if visible_world.has_point(d["p"]):
+			draw_circle(d["p"], d["r"], Color(0.80, 0.89, 1.0, d["alpha"]))
 	# Surface grid, landmarks and illuminated dust trails.
 	for x in range(0, int(WORLD_W), 180):
 		draw_line(Vector2(x, 0), Vector2(x, WORLD_H), Color(0.32, 0.38, 0.52, 0.11), 1.0)
