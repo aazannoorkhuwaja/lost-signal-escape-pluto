@@ -44,6 +44,7 @@ var parts: Array[Dictionary] = [
 	{"name": "FUEL MODULE", "pos": Vector2(1870, 1205), "hint": "Watch the icy vent before crossing!", "color": Color(0.58, 1.0, 0.65)},
 	{"name": "TRANSMITTER", "pos": Vector2(850, 1125), "hint": "Avoid the radio-wave beacon!", "color": Color(0.93, 0.53, 1.0)}
 ]
+const CREW := ["Abbas Ahmed", "Aazan Noor Khuwaja", "Mushaf ALi Mir"]
 const LEVELS := ["Easy", "Medium", "Hard"]
 const EXTRA_PARTS := [
 	{"name": "COOLANT PUMP", "pos": Vector2(425, 365), "hint": "Skirt the pressure cracks.", "color": Color.SKY_BLUE},
@@ -342,7 +343,7 @@ func restart_game() -> void:
 	scan_show = 0.0
 	hurt_invincible = 0.0
 	joy = Vector2.ZERO
-	show_message("%s flight  /  %d components. Find the torch east of the wreck." % [LEVELS[level], parts.size()], 4.0)
+	show_message("%s on the surface. Recover %d parts. Torch signal east." % [CREW[level], parts.size()], 4.0)
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:

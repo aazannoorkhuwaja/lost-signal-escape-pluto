@@ -43,7 +43,7 @@ func _draw() -> void:
         return
     panel(Rect2(18, 14, 680, 96))
     text_at("LOST SIGNAL", Vector2(39, 48), 27, Color(0.46, 0.86, 1.0))
-    text_at("PLUTO  /  " + game.LEVELS[game.level].to_upper(), Vector2(257, 48), 17, Color(0.77, 0.83, 0.94))
+    text_at(game.CREW[game.level] + "  /  " + game.LEVELS[game.level], Vector2(257, 48), 17, Color(0.77, 0.83, 0.94))
     text_at(game.objective_text(), Vector2(39, 81), 16, Color(1, 0.86, 0.46))
 
     panel(Rect2(714, 14, 296, 96))
@@ -118,9 +118,9 @@ func _draw() -> void:
         var title := "SIGNAL LOST"
         if won:
             title = "SIGNAL RESTORED" if game.level == 2 else game.LEVELS[game.level].to_upper() + " FLIGHT COMPLETE"
-        var reply := "Earth Control: We hear you, Pluto. Bring her home." if won else "Suit pressure lost. Your crew can try this flight again."
+        var reply := "SUPARCO: Mushaf, we hear you. Bring the crew home." if won else "Suit pressure lost. Your crew can try this flight again."
         if won and game.level < 2:
-            reply = "Flight logged. Attempt the next recovery under tougher conditions."
+            reply = ["Abbas to Aazan: First craft clear. The ice ahead is splitting.", "Aazan to Mushaf: Coolant secured. The recorder is yours."][game.level]
         modal(title, [reply, "%s    /    %d components    /    %d points" % [game.LEVELS[game.level], game.collected, game.score()]])
         var action := "Retry level"
         if won:
@@ -142,12 +142,12 @@ func modal(heading: String, lines: Array) -> void:
         text_at(str(lines[i]), Vector2(314, 326 + 46 * i), 21 if i != lines.size() - 1 else 18, Color(0.94, 0.95, 0.98) if i != lines.size() - 1 else Color(1, 0.82, 0.34))
 
 func draw_prologue(elapsed: float) -> void:
-    const TITLES := ["The last transmission", "One pilot, one repair flight", "No guidance", "Five trails in the ice"]
+    const TITLES := ["Pakistan  /  SUPARCO Mission Control", "Three astronauts bound for Pluto", "Approach without a beacon", "Abbas takes the first flight"]
     const CAPTIONS := [
-        "Pluto Station sent one last weather report. Then the ice storm took its relay offline.",
-        "Earth sent you to repair the relay. On approach, you called the station. Only static came back.",
-        "Without the landing beacon, you saw the ridge too late. The hull struck ice and split open.",
-        "Five ship components tore free and skidded across the plain. Your torch landed nearby."
+        "At SUPARCO in Pakistan, the night shift hears Pluto Station fall silent mid-report.",
+        "Abbas, Aazan and Mushaf launch for Pluto. Their calls to the station go unanswered.",
+        "Without a landing beacon, the crew spots the ridge too late. The hull splits on impact.",
+        "Five parts scatter. Abbas goes first. Aazan and Mushaf will fly the harder recoveries."
     ]
     const BEAT := 5.0
     var chapter := mini(int(elapsed / BEAT), TITLES.size() - 1)
@@ -159,19 +159,22 @@ func draw_prologue(elapsed: float) -> void:
         var star := Vector2((i * 379 + 29) % 1280, (i * i * 17 + 43) % 490)
         draw_circle(star, 1 + i % 2, Color(0.75, 0.86, 1, 0.35 + 0.2 * sin(elapsed + i)))
 
-    if chapter < 2:
+    if chapter == 0:
+        var dish := Vector2(320, 368)
+        draw_rect(Rect2(0, 428, SW, 82), Color("#183332"))
+        draw_line(dish, Vector2(290, 430), ice, 8)
+        draw_arc(dish - Vector2(0, 42), 55, 0.3, PI, 32, ice, 7)
+        draw_line(dish, dish + Vector2(36, -69), ice, 4)
+        for i in range(3):
+            var signal_phase := fmod(elapsed * 0.45 + i / 3.0, 1.0)
+            if t < 0.73:
+                draw_arc(dish + Vector2(36,-69), 12 + signal_phase * 130, -1.3, -0.28, 24, Color(0.48, 0.94, 0.74, 1 - signal_phase), 3)
+    elif chapter == 1:
         var planet := Vector2(911, 429)
         draw_circle(planet, 172, Color("#426182"))
         draw_arc(planet, 175, PI, TAU, 64, ice, 3)
         draw_circle(planet + Vector2(65, 25), 36, Color("#344e70"))
-        var relay := planet - Vector2(55, 161)
-        draw_line(relay, relay + Vector2(0, -30), ice, 4)
-        for i in range(3):
-            var pulse := fmod(elapsed * 0.48 + i / 3.0, 1.0)
-            if chapter == 0 and t < 0.72:
-                draw_arc(relay, 6 + pulse * 92, PI * 1.1, PI * 1.9, 32, Color(0.5, 0.91, 1, 1 - pulse), 3)
-        if chapter == 1:
-            draw_flight_ship(Vector2(172, 125).lerp(Vector2(703, 250), smoothstep(0, 1, t)), 0.18)
+        draw_flight_ship(Vector2(172, 125).lerp(Vector2(703, 250), smoothstep(0, 1, t)), 0.18)
     else:
         var ridge := PackedVector2Array([Vector2(0, 385), Vector2(264, 325), Vector2(425, 370), Vector2(725, 277), Vector2(910, 355), Vector2(1280, 296), Vector2(1280, 520), Vector2(0, 520)])
         draw_colored_polygon(ridge, Color("#354866"))
