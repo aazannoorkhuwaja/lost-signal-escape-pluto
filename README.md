@@ -42,11 +42,17 @@ The flight check walks all five missions and the return trip, then checks damage
 
 ## Prepare the submission
 
-Export the APK and package the active game from the same commit.
+Use the signed Android build, the cache-free project ZIP, and the project README. The following commands collect them in a local submission folder after export.
 
 ```sh
-git archive --format=zip --prefix=LostSignal/ --output=../BunyanAlMarsoos_LostSignal.zip \
-  HEAD:LOST_SIGNAL_Godot_Project/LOST_SIGNAL_PlutO
+name=BunyanAlMarsoos_LostSignalEscapePluto
+project=LOST_SIGNAL_Godot_Project/LOST_SIGNAL_PlutO
+mkdir -p submission
+cp LostSignal-debug.apk "submission/$name.apk"
+git archive --format=zip --prefix=LostSignal/ --output="submission/$name.zip" "HEAD:$project"
+git show "HEAD:$project/README.md" > submission/README.md
 ```
+
+Upload through the link supplied by the organizers and confirm receipt at the volunteer desk. Use the submitted build for the three-minute demo and one-minute Q&A.
 
 The [mobile guidelines](docs/competition/mobile-game-guidelines.pdf) accept multiple engines. The [starter guide](docs/competition/participant-starter-guide.pdf) lists Unity source and requires an APK. Confirm Godot source acceptance with the organizers.

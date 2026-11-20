@@ -6,9 +6,13 @@ A landscape Android exploration game for the Coder’s Cup ’26 LOST theme. Plu
 
 **Members:** Aazan Noor Khuwaja, Mushaf ALi Mir, Abbas Ahmed
 
+## Theme interpretation
+
+The astronaut loses contact with Earth and wakes beside a wreck in darkness. Finding the torch restores local navigation. Each recovered component brings the pilot closer to rebuilding the only way home.
+
 ## Play
 
-Install the signed debug APK on an ARM Android phone running Android 7.0 or newer. With USB debugging enabled, run `adb install -r LostSignal-debug.apk` and open Lost Signal from the launcher.
+Install the signed debug APK on an ARM Android phone running Android 7.0 or newer. With USB debugging enabled, run `adb install -r BunyanAlMarsoos_LostSignalEscapePluto.apk` and open Lost Signal from the launcher.
 
 Tap to begin. Use the left stick to reach the gold torch east of the crash site. The torch restores the minimap. Green marks the astronaut, gold marks the next component and blue marks the ship. Hold the stick and tap SCAN with another finger for a bearing and a wider light radius. The scanner recharges in five seconds.
 
@@ -28,4 +32,4 @@ Terrain, spacecraft, astronaut, HUD and lighting are generated with Godot drawin
 
 ## Competition handoff
 
-Submit the signed APK, the cache-free project source and this README. Use the submission filename `BunyanAlMarsoos_LostSignal.zip` for the source archive. The guidelines allocate 90 minutes to development and close submissions two hours after the session starts. The starter guide requires an APK and lists Unity project files, while the mobile guidelines allow other engines. This submission supplies Godot source. Confirm the source-format discrepancy with the volunteer desk.
+Submit the signed APK, the cache-free project source and this README. Use the submission filename `BunyanAlMarsoos_LostSignalEscapePluto.zip` for the source archive. The guidelines allocate 90 minutes to development and close submissions two hours after the session starts. The starter guide requires an APK and lists Unity project files, while the mobile guidelines allow other engines. This submission supplies Godot source. Confirm the source-format discrepancy with the volunteer desk.
