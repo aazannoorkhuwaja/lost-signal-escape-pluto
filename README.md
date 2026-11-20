@@ -2,14 +2,26 @@
 <p align="center"><strong>A transmission cuts out in Pakistan. Three astronauts go looking for its source.</strong><br>
 A landscape Android adventure by bunyan al marsoos.</p>
 <p align="center">
-  <a href="https://github.com/aazannoorkhuwaja/lost-signal-escape-pluto/releases/tag/pluto-crew"><img alt="Crew Edition release" src="https://img.shields.io/badge/release-Crew_Edition-307156"></a>
+  <a href="https://github.com/aazannoorkhuwaja/lost-signal-escape-pluto/releases/tag/pluto-campaign"><img alt="Crew Edition release" src="https://img.shields.io/badge/release-Crew_Edition-307156"></a>
   <img alt="Android 7.0 or later" src="https://img.shields.io/badge/Android-7.0%2B-384757">
   <img alt="Built with Godot 4.7.2" src="https://img.shields.io/badge/Godot-4.7.2-46789b">
 </p>
 <p align="center">
-  <a href="https://github.com/aazannoorkhuwaja/lost-signal-escape-pluto/releases/download/pluto-crew/LostSignal.apk">Download for Android</a> ·
-  <a href="https://github.com/aazannoorkhuwaja/lost-signal-escape-pluto/releases/download/pluto-crew/LostSignal-demo.mp4">Watch the gameplay demo</a>
+  <a href="https://github.com/aazannoorkhuwaja/lost-signal-escape-pluto/releases/download/pluto-campaign/LostSignal.apk">Download for Android</a> ·
+  <a href="https://github.com/aazannoorkhuwaja/lost-signal-escape-pluto/releases/download/pluto-campaign/LostSignal-demo.mp4">Watch the gameplay demo</a>
 </p>
+
+## 🎯 Game Jam themes — LOST × TINY WORLD
+
+**Primary theme: LOST. Secondary inspiration: TINY WORLD.** Our game blends both announced prompts into one cohesive adventure:
+
+- **LOST:** Pluto Station's signal goes silent, the crew loses its route, and the crash scatters critical spaceship components. With limited visibility, players must find a torch, navigate by mini-map and scanner, recover the parts, and find the way back to their spacecraft.
+- **TINY WORLD:** The action takes place on a compact, miniature, top-down Pluto surface: one self-contained pocket world with recognizable craters, ice ridges, moving dangers and scattered equipment. A small astronaut explores this isolated world, where every landmark and recovered part matters.
+- **How they connect:** The tiny world's terrain hides what was lost. Exploration, navigation, and restoring a way home—not simply collecting objects—drive the gameplay.
+
+**One-line pitch:** *A lost signal strands a tiny explorer on a miniature Pluto. Find the parts, rebuild your ship, and bring the crew home.*
+
+If the judges require **one official theme**, submit **LOST** as the selected theme; explain **TINY WORLD** as an additional visual and design influence rather than claiming two separately selected themes.
 
 ## 📡 The last transmission
 
@@ -30,6 +42,10 @@ The three members of **bunyan al marsoos** appear as the astronauts you play, on
 | Hard | **Mushaf ALi Mir** | Bring back all seven parts, including the flight recorder. Six fractures guard the route home to Pakistan. |
 
 ## 📱 Install and play
+
+The public `pluto-campaign` release currently carries the downloadable APK and gameplay demo. The newer `pluto-crew` release is still a draft; its assets are not publicly accessible until it is published.
+
+
 
 1. Download **LostSignal.apk** from the release linked above. Open it on an ARM Android phone running Android 7.0 or later.
 2. Hold the phone in landscape. Tap to begin Abbas’s flight. Move east to pick up the torch and bring the map online.
@@ -55,4 +71,4 @@ godot --headless --path game --script "$PWD/tests/flight_check.gd"
 
 ## Credits
 
-Built for the **LOST** theme at Coder’s Cup ’26. The terrain, spacecraft and lighting are drawn in Godot. Sound effects are synthesized, and text uses Godot’s bundled font. ChatGPT and Codex assisted with design, code, interface, sound generation, testing, Android packaging and documentation.
+Built for the **LOST** theme at Coder’s Cup ’26, with **TINY WORLD** as a second creative interpretation. The terrain, spacecraft and lighting are drawn in Godot. Sound effects are synthesized, and text uses Godot’s bundled font. ChatGPT and Codex assisted with design, code, interface, sound generation, testing, Android packaging and documentation.
