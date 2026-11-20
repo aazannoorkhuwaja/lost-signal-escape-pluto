@@ -30,7 +30,7 @@ project=LOST_SIGNAL_Godot_Project/LOST_SIGNAL_PlutO
 adb install -r LostSignal-debug.apk
 ```
 
-The flight check walks all five missions and the return trip, then checks damage, restart and scanner input. Desktop mouse controls have been exercised at 960×540, 1440×720 and 960×720. The Android package passed signature and alignment checks. Physical-device testing is pending.
+The flight check walks all five missions and the return trip, then checks damage, restart and scanner input. Desktop mouse controls have been exercised at 960×540, 1440×720 and 960×720. The Android package passed signature and alignment checks. The team confirmed testing on its demo phone.
 
 ## Repository layout
 
@@ -53,6 +53,6 @@ git archive --format=zip --prefix=LostSignal/ --output="submission/$name.zip" "H
 git show "HEAD:$project/README.md" > submission/README.md
 ```
 
-Upload through the link supplied by the organizers and confirm receipt at the volunteer desk. Use the submitted build for the three-minute demo and one-minute Q&A.
+The team confirmed upload and receipt at the volunteer desk. Use the submitted build for the three-minute demo and one-minute Q&A.
 
-The [mobile guidelines](docs/competition/mobile-game-guidelines.pdf) accept multiple engines. The [starter guide](docs/competition/participant-starter-guide.pdf) lists Unity source and requires an APK. Confirm Godot source acceptance with the organizers.
+The [mobile guidelines](docs/competition/mobile-game-guidelines.pdf) accept multiple engines. The [starter guide](docs/competition/participant-starter-guide.pdf) lists Unity source and requires an APK. The team confirmed acceptance of its Godot source.
