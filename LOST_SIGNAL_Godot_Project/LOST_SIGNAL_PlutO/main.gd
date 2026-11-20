@@ -18,6 +18,9 @@ var camera_origin := Vector2.ZERO
 var joy := Vector2.ZERO
 var stick_down := false
 var stick_touch_id := -99
+var pickup_time := 0.0
+var pickup_position := Vector2.ZERO
+var launch_time := 0.0
 var mode := "intro"
 var collected := 0
 var torch_found := false
@@ -104,6 +107,7 @@ func _build_world() -> void:
 func _process(delta: float) -> void:
 	delta = minf(delta, 0.05)
 	clock += delta
+	pickup_time = maxf(0, pickup_time - delta)
 	if message_time > 0:
 		message_time -= delta
 	if scan_cooldown > 0:
@@ -112,6 +116,11 @@ func _process(delta: float) -> void:
 		scan_show -= delta
 	if hurt_invincible > 0:
 		hurt_invincible -= delta
+
+	if mode == "launch":
+		launch_time += delta
+		if launch_time >= 2.5:
+			mode = "win"
 
 	if mode == "playing":
 		time_elapsed += delta
@@ -137,6 +146,8 @@ func _process(delta: float) -> void:
 
 	_update_camera()
 	if fog != null:
+		fog.material.set_shader_parameter("facing", facing)
+		fog.material.set_shader_parameter("has_torch", torch_found)
 		var hero_uv := (player - camera_origin) / SCREEN
 		fog.material.set_shader_parameter("hero_screen", hero_uv)
 		fog.material.set_shader_parameter("torch_radius", 0.13 if not torch_found else (0.63 if scan_show > 0 else 0.42))
@@ -174,6 +185,8 @@ func _check_collectibles() -> void:
 	if collected < parts.size():
 		var current: Dictionary = parts[collected]
 		if player.distance_to(current["pos"]) < 47.0:
+			pickup_position = current["pos"]
+			pickup_time = 0.6
 			collected += 1
 			checkpoint = player
 			hurt_invincible = 1.8
@@ -183,7 +196,9 @@ func _check_collectibles() -> void:
 			else:
 				show_message("%s RECOVERED! Next: %s" % [current["name"], parts[collected]["name"]], 3.3)
 	elif player.distance_to(ship) < 86.0:
-		mode = "win"
+		mode = "launch"
+		launch_time = 0.0
+		show_message("HULL SEALED   /   Launch sequence engaged", 2.5)
 		joy = Vector2.ZERO
 		play_sound("win")
 
@@ -202,8 +217,8 @@ func _check_hazards() -> void:
 			take_damage("Meteor impact! Keep moving.")
 			return
 	# Challenge 5: a radio beacon sends out dangerous expanding rings.
-	var ring_dist := fmod(clock * 85.0, 225.0)
-	if player.distance_to(Vector2(850, 1125)) > 60.0 and absf(player.distance_to(Vector2(850, 1125)) - ring_dist) < 13.0:
+	var ring_dist := fmod(clock, 4.5) * 85.0
+	if player.distance_to(Vector2(850, 1125)) > 60.0 and ring_dist <= 225.0 and absf(player.distance_to(Vector2(850, 1125)) - ring_dist) < 13.0:
 		if player.distance_to(Vector2(850, 1125)) < 225.0:
 			take_damage("Signal pulse! Watch the expanding ring.")
 			return
@@ -254,6 +269,10 @@ func activate_scan() -> void:
 
 func restart_game() -> void:
 	mode = "playing"
+	clock = 0.0
+	pickup_time = 0.0
+	stick_down = false
+	stick_touch_id = -99
 	player = ship
 	checkpoint = ship
 	collected = 0
@@ -269,35 +288,37 @@ func restart_game() -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
-			if mode != "playing":
+			if mode in ["intro", "dead", "win"]:
 				restart_game()
 		if event.keycode == KEY_SPACE:
 			activate_scan()
 	elif event is InputEventScreenTouch:
 		if event.pressed:
-			_touch_start(event.position, event.index)
+			_touch_start(hud.pointer_position(event.position), event.index)
 		elif stick_touch_id == event.index:
 			stick_down = false
 			stick_touch_id = -99
 			joy = Vector2.ZERO
 	elif event is InputEventScreenDrag:
 		if event.index == stick_touch_id:
-			joy = (event.position - Vector2(118, 598)).limit_length(72.0) / 72.0
+			joy = (hud.pointer_position(event.position) - Vector2(118, 598)).limit_length(72.0) / 72.0
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
-			_touch_start(event.position, -1)
+			_touch_start(hud.pointer_position(event.position), -1)
 		elif stick_touch_id == -1:
 			stick_down = false
 			stick_touch_id = -99
 			joy = Vector2.ZERO
 	elif event is InputEventMouseMotion and stick_touch_id == -1:
-		joy = (event.position - Vector2(118, 598)).limit_length(72.0) / 72.0
+		joy = (hud.pointer_position(event.position) - Vector2(118, 598)).limit_length(72.0) / 72.0
 
 func _touch_start(screen_position: Vector2, touch_id: int) -> void:
-	if mode != "playing":
+	if mode in ["intro", "dead", "win"]:
 		restart_game()
 		return
-	if screen_position.distance_to(Vector2(118, 598)) < 120:
+	if mode != "playing":
+		return
+	if not stick_down and screen_position.distance_to(Vector2(118, 598)) < 104:
 		stick_down = true
 		stick_touch_id = touch_id
 		joy = (screen_position - Vector2(118, 598)).limit_length(72.0) / 72.0
@@ -337,10 +358,13 @@ func _draw() -> void:
 	# Broken spaceship: exactly where the player must return after collecting all parts.
 	draw_circle(ship, 92, Color(0.12, 0.46, 0.64, 0.18))
 	draw_arc(ship, 83, 0, TAU, 42, Color(0.36, 0.81, 1.0, 0.75), 3)
-	var hull := PackedVector2Array([ship + Vector2(-58, 28), ship + Vector2(26, -46), ship + Vector2(79, 24), ship + Vector2(9, 57)])
+	var craft := ship + Vector2(0, -100 * launch_time * launch_time) if mode in ["launch", "win"] else ship
+	if mode == "launch":
+		draw_circle(craft + Vector2(0, 36), 15 + 5 * sin(clock * 40), Color.CORAL)
+	var hull := PackedVector2Array([craft + Vector2(-58, 28), craft + Vector2(26, -46), craft + Vector2(79, 24), craft + Vector2(9, 57)])
 	draw_colored_polygon(hull, Color(0.40, 0.58, 0.79))
-	draw_circle(ship + Vector2(12, 3), 23, Color(0.08, 0.34, 0.52))
-	draw_line(ship + Vector2(-26, -19), ship + Vector2(40, 40), Color(1.0, 0.44, 0.31), 6)
+	draw_circle(craft + Vector2(12, 3), 23, Color(0.08, 0.34, 0.52))
+	draw_line(craft + Vector2(-26, -19), craft + Vector2(40, 40), Color(1.0, 0.44, 0.31), 6)
 	_label_world("CRASH SITE", ship + Vector2(-62, 116), 18, Color(0.57, 0.85, 1.0))
 
 	# First recovery item: flashlight.
@@ -364,6 +388,9 @@ func _draw() -> void:
 		if active:
 			_label_world(item["name"], p + Vector2(-70, -61), 18, tint)
 
+	if pickup_time > 0:
+		draw_arc(pickup_position, 28 + (0.6 - pickup_time) * 105, 0, TAU, 40, Color(0.68, 1, 0.8, pickup_time / 0.6), 3)
+
 	# Challenge 1: dangerous but periodic electrical current.
 	var wire_color := Color(0.31, 0.82, 1.0, 0.90) if fmod(clock, 3.0) < 1.65 else Color(0.31, 0.82, 1.0, 0.20)
 	draw_rect(Rect2(615, 388, 175, 20), wire_color)
@@ -381,8 +408,9 @@ func _draw() -> void:
 
 	# Challenge 5: expanding signal ring, best watched before crossing.
 	var beacon := Vector2(850, 1125)
-	var ring_radius := fmod(clock * 85.0, 225.0)
-	draw_arc(beacon, maxf(2.0, ring_radius), 0, TAU, 68, Color(0.95, 0.4, 0.86, 0.70), 6)
+	var ring_radius := fmod(clock, 4.5) * 85.0
+	if ring_radius <= 225.0:
+		draw_arc(beacon, maxf(2.0, ring_radius), 0, TAU, 68, Color(0.95, 0.4, 0.86, 0.70), 6)
 	draw_arc(beacon, 225, 0, TAU, 68, Color(0.67, 0.40, 0.85, 0.22), 2)
 
 	# Scanner line appears briefly, intentionally showing direction, not auto-navigation.
@@ -392,7 +420,7 @@ func _draw() -> void:
 		draw_arc(target, 60 + 7 * sin(clock * 7.0), 0, TAU, 44, Color(0.6, 1.0, 0.72, 0.73), 3)
 
 	# Astronaut: tiny backpack, suit, helmet and facing visor.
-	if hurt_invincible <= 0 or fmod(clock * 10.0, 1.0) < 0.52:
+	if mode != "launch" and (hurt_invincible <= 0 or fmod(clock * 10.0, 1.0) < 0.52):
 		draw_circle(player + Vector2(2, 7), 24, Color(0.02, 0.05, 0.10, 0.54))
 		draw_rect(Rect2(player + Vector2(-23, -15), Vector2(13, 30)), Color(0.94, 0.46, 0.25))
 		draw_circle(player, 19.0, Color(0.92, 0.96, 1.0))
@@ -408,3 +436,9 @@ func _glow(center: Vector2, radius: float, tint: Color) -> void:
 
 func _label_world(s: String, p: Vector2, size: int, tint: Color) -> void:
 	draw_string(ThemeDB.fallback_font, p, s, HORIZONTAL_ALIGNMENT_LEFT, -1.0, size, tint)
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		stick_down = false
+		stick_touch_id = -99
+		joy = Vector2.ZERO

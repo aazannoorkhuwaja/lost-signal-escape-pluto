@@ -9,6 +9,22 @@ func _ready() -> void:
     mouse_filter = Control.MOUSE_FILTER_IGNORE
     set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
+# Convert Android's physical safe rectangle to the same logical coordinates
+# used by the camera. Keep drawing and pointer hit tests in this same space.
+func safe_transform() -> Transform2D:
+    if OS.get_name() != "Android":
+        return Transform2D.IDENTITY
+    var screen_to_canvas := get_viewport().get_screen_transform().affine_inverse()
+    var safe := (screen_to_canvas * Rect2(DisplayServer.get_display_safe_area())).intersection(Rect2(0, 0, SW, SH))
+    if not safe.has_area():
+        return Transform2D.IDENTITY
+    var factor := minf(safe.size.x / SW, safe.size.y / SH)
+    var offset := safe.get_center() - Vector2(SW, SH) * factor * 0.5
+    return Transform2D(0, Vector2.ONE * factor, 0, offset)
+
+func pointer_position(viewport_point: Vector2) -> Vector2:
+    return safe_transform().affine_inverse() * viewport_point
+
 func text_at(label: String, pos: Vector2, size: int = 18, color: Color = Color.WHITE) -> void:
     draw_string(ThemeDB.fallback_font, pos, label, HORIZONTAL_ALIGNMENT_LEFT, -1.0, size, color)
 
@@ -19,12 +35,13 @@ func panel(rect: Rect2, tint: Color = Color(0.06, 0.09, 0.17, 0.91)) -> void:
 func _draw() -> void:
     if game == null:
         return
-    panel(Rect2(18, 14, 680, 96))
-    text_at("LOST SIGNAL", Vector2(39, 48), 27, Color(0.46, 0.86, 1.0))
+    draw_set_transform_matrix(safe_transform())
+    panel(Rect2(32, 24, 790, 94))
+    text_at("LOST SIGNAL", Vector2(52, 48), 27, Color(0.46, 0.86, 1.0))
     text_at("ESCAPE PLUTO", Vector2(257, 48), 17, Color(0.77, 0.83, 0.94))
-    text_at(game.objective_text(), Vector2(39, 81), 18, Color(1, 0.86, 0.46))
-    text_at("PARTS  %d / 5" % game.collected, Vector2(515, 48), 19, Color(0.74, 1.0, 0.73))
-    text_at("LIVES  %d / 3" % game.lives, Vector2(515, 80), 18, Color(1.0, 0.61, 0.66))
+    text_at(game.objective_text(), Vector2(52, 81), 18, Color(1, 0.86, 0.46))
+    text_at("PARTS  %d / 5" % game.collected, Vector2(674, 48), 19, Color(0.74, 1.0, 0.73))
+    text_at("LIVES  %d / 3" % game.lives, Vector2(674, 80), 18, Color(1.0, 0.61, 0.66))
 
     # Mini-map: all positions are based on actual world coordinates.
     var mm := Rect2(1034, 16, 226, 170)
@@ -33,18 +50,22 @@ func _draw() -> void:
     var area := Rect2(1050, 49, 193, 119)
     draw_rect(area, Color(0.09, 0.13, 0.24))
     draw_rect(area, Color(0.3, 0.42, 0.57), false, 1.0)
-    for zone in game.map_landmarks:
-        var mp: Vector2 = zone
-        var p := Vector2(area.position.x + mp.x / game.WORLD_W * area.size.x, area.position.y + mp.y / game.WORLD_H * area.size.y)
-        draw_circle(p, 2.5, Color(0.45, 0.57, 0.76))
-    var ship_pos := map_pos(game.ship, area)
-    draw_circle(ship_pos, 4, Color(0.31, 0.77, 1.0))
-    var objective := map_pos(game.get_target_position(), area)
-    draw_circle(objective, 5.3, Color(1.0, 0.79, 0.27))
-    draw_arc(objective, 7, 0, TAU, 24, Color(1.0, 0.80, 0.25, 0.80), 1.3)
-    var player_pos := map_pos(game.player, area)
-    draw_circle(player_pos, 4.5, Color(0.47, 1.0, 0.57))
-    draw_line(player_pos, objective, Color(1, 0.83, 0.4, 0.38), 1.1)
+    if game.torch_found:
+        for zone in game.map_landmarks:
+            var mp: Vector2 = zone
+            var p := Vector2(area.position.x + mp.x / game.WORLD_W * area.size.x, area.position.y + mp.y / game.WORLD_H * area.size.y)
+            draw_circle(p, 2.5, Color(0.45, 0.57, 0.76))
+        var ship_pos := map_pos(game.ship, area)
+        draw_circle(ship_pos, 4, Color(0.31, 0.77, 1.0))
+        var objective := map_pos(game.get_target_position(), area)
+        draw_circle(objective, 5.3, Color(1.0, 0.79, 0.27))
+        draw_arc(objective, 7, 0, TAU, 24, Color(1.0, 0.80, 0.25, 0.80), 1.3)
+        var player_pos := map_pos(game.player, area)
+        draw_circle(player_pos, 4.5, Color(0.47, 1.0, 0.57))
+        draw_line(player_pos, objective, Color(1, 0.83, 0.4, 0.38), 1.1)
+
+    else:
+        text_at("NO SIGNAL", area.get_center() - Vector2(46, 0), 17)
 
     # Virtual thumbstick. Also works with mouse when touch emulation is on.
     var jc := Vector2(118, 598)
@@ -58,8 +79,9 @@ func _draw() -> void:
     draw_circle(sc, 61, Color(0.12, 0.24, 0.31, 0.79))
     draw_arc(sc, 61, -PI / 2.0, -PI / 2.0 + TAU * available, 48, Color(0.34, 1.0, 0.78), 6)
     text_at("SCAN", Vector2(1124, 614), 20, Color(0.76, 1.0, 0.88))
-    text_at("5s cooldown", Vector2(1096, 698), 14, Color(0.73, 0.82, 0.92))
-    text_at("WASD / ARROWS + SPACE", Vector2(468, 688), 14, Color(0.66, 0.78, 0.92))
+    text_at(("READY" if game.scan_cooldown <= 0 else "%ds" % ceili(game.scan_cooldown)) if game.torch_found else "OFFLINE", Vector2(1096, 698), 14, Color(0.73, 0.82, 0.92))
+    if not OS.has_feature("mobile"):
+        text_at("WASD / ARROWS + SPACE", Vector2(468, 688), 14, Color(0.66, 0.78, 0.92))
 
     # Short visible story/hint above bottom controls.
     if game.message_time > 0:
@@ -71,7 +93,7 @@ func _draw() -> void:
     elif game.mode == "dead":
         modal("SIGNAL LOST", ["Your suit ran out of lives.", "Collected: %d / 5 components" % game.collected, "TAP ANYWHERE / PRESS ENTER TO RETRY"])
     elif game.mode == "win":
-        modal("MISSION COMPLETE!", ["The engines are back online.", "Navigation confirmed: EARTH -- HOME.", "You escaped Pluto with all five components!", "TAP ANYWHERE / PRESS ENTER TO PLAY AGAIN"])
+        modal("MISSION COMPLETE!", ["Flight time: %d:%02d   /   Suit integrity: %d of 3" % [int(game.time_elapsed) / 60, int(game.time_elapsed) % 60, game.lives], "Navigation confirmed: EARTH -- HOME.", "You escaped Pluto with all five components!", "TAP ANYWHERE / PRESS ENTER TO PLAY AGAIN"])
 
 func map_pos(world: Vector2, area: Rect2) -> Vector2:
     return Vector2(area.position.x + world.x / game.WORLD_W * area.size.x, area.position.y + world.y / game.WORLD_H * area.size.y)
